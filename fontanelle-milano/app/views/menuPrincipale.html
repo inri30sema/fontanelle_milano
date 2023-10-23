@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    
+    <title>Fontanelle di milano</title>
+    
+    <style>
+    
+      body {
+        background-color: #D5E0DE;
+      }
+      
+      /* Stili per il menu */
+      .menu {
+        width: 0;
+        overflow: hidden;
+        transition: width 0.3s;
+        background-color: #D5E0DE;
+      }
+
+      .menu a {
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+      }
+
+      /* Stili per il pulsante */
+      .button {
+        cursor: pointer;
+        padding: 10px 20px;
+        background-color: #D5E0DE;
+        border-radius: 10px 10px 10px 10px;
+      }
+      
+      .button1 {
+        cursor: pointer;
+        padding: 10px 20px;
+        background-color: #D5E0DE;
+        border-radius: 10px 10px 10px 10px;
+        width: 200px; 
+        height: 45px; 
+      }
+      
+      /* Stili per la mappa (arrotondamento punte mappa) */  
+      .mappa{
+        border-radius: 10px 10px 10px 10px;
+      }
+      
+      #mapid { height: 650px;}
+    </style>
+    
+    <!-- <link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon"> -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+    crossorigin=""/>
+    
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+    crossorigin=""></script>
+    
+    <!-- import di sweeralert (popup) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+  </head>
+  <body>
+
+    <font align="center"><h2>Mappa fontanelle presenti a Milano </h2></font>
+    
+    <!-- CREAZIONE MENU A SCORRIMENTO -->
+    <div style="float:left;">
+      
+      <!-- Pulsante per aprire il menu -->
+      <div class="button" onclick="toggleMenu()">
+        <img src="https://cdn.glitch.global/4f7b0ebd-bd6e-43a1-83aa-fa155de15f84/righe_menu2.png?v=1697891779380" width="30" height="30">
+      </div>
+
+      <!-- Menu a scorrimento -->
+      <div class="menu" id="myMenu">
+        <!-- Bottone per tornare alla mappa iniziale -->
+        <button id="resetButton" class="button" onclick="creaMappa()">Ripristina Mappa</button>
+        
+        <!-- Ricerca di una singola fontanella -->
+        <p>
+          ---------------- Cerca fontanella ----------------
+          <br>
+          <label for="objectID"> ID:</label>
+          <input type="number" class="form-control" id="objectID" name="objectID" required>
+          <button type="button" class="button" id="btn" onclick="cercaFontanella()">Cerca</button>
+          <br>
+          -----------------------------------------------------
+        </p>
+        
+        <!-- Ricerca delle fontanelle di una zona -->
+        <p>
+          ------------- Cerca fontanella per zona ------------
+          <br>
+          <label for="ID_NIL"> IDzona:</label>
+          <input type="number" class="form-control" id="ID_NIL" name="ID_NIL" required>
+          <button type="button" class="button" id="btn2" onclick="cercaFontanellaZona()">Cerca</button>
+          <br>
+          ----------------------------------------------------------
+        </p>
+        
+        <a href="https://fontanelle-milano.glitch.me/views/nuovaFontanella.html">
+          <button type="button" class="button1" id="btn4"> aggiungi fontanella </button>
+        </a>
+        
+        <a href="https://web.postman.co/workspace/My-Workspace~1611362f-0b52-4ef7-8337-ae2fc0f3aa17/request/create?requestId=ead35ac6-ec43-4ff9-b24a-3144c7308267">
+          <button type="button" class="button1" id="btn5"> elimina fontanella </button>
+        </a>
+        
+        <a href="https://web.postman.co/workspace/My-Workspace~1611362f-0b52-4ef7-8337-ae2fc0f3aa17/request/create?requestId=ead35ac6-ec43-4ff9-b24a-3144c7308267">
+          <button type="button" class="button1" id="btn6"> modifica fontanella </button>
+        </a>
+        
+      </div>
+    </div>
+    
+    <!-- CREAZIONE MAPPA -->
+    <div id="mapid" class="mappa"></div>
+    
+    <script>
+      
+      <!-- script per far scorrere il menù -->
+      var menuOpen = false; 
+      function toggleMenu() {
+        var menu = document.getElementById("myMenu");
+        if (menuOpen) {
+          menu.style.width = "0";
+          menuOpen = false;
+        } else {
+          menu.style.width = "360px"; // Larghezza desiderata per il menu
+          menuOpen = true;
+        }
+      }
+      
+      <!-- script per creazione mappa -->
+      var map;
+      var markers = [];
+      
+      window.onload = creaMappa;
+      
+      const attribution ='&copy; <a href="htts://www.openstreetmap.org/copyright"> OpenStreetMap </a>contributors';
+      const tUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      const tiles = L.tileLayer(tUrl, {attribution})
+      var map = L.map('mapid');
+      tiles.addTo(map);
+      const latMilano = 45.4613;
+      const longMilano = 9.1595;
+      map.setView([latMilano, longMilano], 11);
+      
+      async function creaMappa() {
+        const response = await fetch('/getMappa');
+        const result = await response.json();
+        if (result[0] == null) {
+          document.getElementById('error').innerHTML = "Non ci sono fontanelle!";
+        } else {
+          for (var i = 0; i < result.length; i++) {
+            var long = parseFloat(result[i]['LONG_X_4326']);
+            var lat = parseFloat(result[i]['LAT_Y_4326']);
+            if (!isNaN(long) && !isNaN(lat)) { // controllo conversione coordinate
+              var descrizione = "idfontanella: " + result[i]['objectID'] + "<br>" + "quartiere: " + result[i]['NIL']
+                                                                         + "<br>" + "coordinate: " + result[i]['Location'];
+              var markerStruttura = new L.LatLng(lat, long);
+              var marker = new L.Marker(markerStruttura);
+              map.addLayer(marker);
+              marker.bindPopup(descrizione);
+              markers.push(marker); // inserimento dei marker in un array (da sfruttare in cercaFontanella())
+            }
+          }
+        }
+      }
+      
+      // Script per cercare una singola fontanella
+      function cercaFontanella() {
+        var inputID = parseInt(document.getElementById("objectID").value);
+
+        if (!isNaN(inputID)) {
+          // Nascondi tutti i marker sulla mappa
+          for (var i = 0; i < markers.length; i++) {
+            map.removeLayer(markers[i]);
+          }
+          markers = []; // Svuota l'array dei marker
+
+          // Effettua una richiesta GET al tuo server Express
+          fetch(`/getFontanella?objectID=${inputID}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.length > 0) {
+                // Aggiungi un marker alla mappa per la fontanella trovata
+                // Assumi che il campo 'LAT_Y_4326' e 'LONG_X_4326' siano presenti nel tuo risultato
+                var fontanella = data[0];
+                var lat = parseFloat(fontanella.LAT_Y_4326);
+                var lon = parseFloat(fontanella.LONG_X_4326);
+                var descrizione = `ID Fontanella: ${fontanella.objectID} <br> Quartiere: ${fontanella.NIL} <br> CAP: ${fontanella.CAP}
+                                   <br> municipio n°: ${fontanella.MUNICIPIO} <br> coordinate: ${fontanella.Location}`;
+                if (!isNaN(lat) && !isNaN(lon)) {
+                  var marker = new L.Marker([lat, lon]);
+                  map.addLayer(marker);
+                  marker.bindPopup(descrizione);
+                  markers.push(marker); // Aggiungi il marker all'array
+                }
+              } else {
+                // Creazione di un popup d'errore
+                Swal.fire({
+                     icon: 'error',
+                     title: 'Errore',
+                     text: 'Fontanella non trovata.',
+                });
+              }
+            })
+            .catch(error => {
+              // Creazione di un popup d'errore
+              Swal.fire({
+                   icon: 'error',
+                   title: 'Errore',
+                   text: 'Si è verificato un errore nella ricerca.',
+              });
+              console.error(error);
+            });
+        } else {
+          // Creazione di un popup d'errore
+          Swal.fire({
+               icon: 'error',
+               title: 'Errore',
+               text: 'Inserisci un ID valido.',
+          });
+        }
+      }
+            
+      // Script per cercare una singola fontanella
+      function cercaFontanellaZona() {
+        var inputID = parseInt(document.getElementById("ID_NIL").value);
+
+        if (!isNaN(inputID)) {
+          // Nascondi tutti i marker sulla mappa
+          for (var i = 0; i < markers.length; i++) {
+            map.removeLayer(markers[i]);
+          }
+          
+          markers = []; // Svuota l'array dei marker
+
+          // Effettua una richiesta GET al tuo server Express
+          fetch(`/getFontanellaQuartiere?ID_NIL=${inputID}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.length > 0) {
+                data.forEach(fontanella => {
+                  // Aggiungi un marker alla mappa per la fontanella trovata
+                  // Assumi che il campo 'LAT_Y_4326' e 'LONG_X_4326' siano presenti nel tuo risultato
+
+                  var lat = parseFloat(fontanella.LAT_Y_4326);
+                  var lon = parseFloat(fontanella.LONG_X_4326);
+                  var descrizione = `ID Fontanella: ${fontanella.objectID} <br> Quartiere: ${fontanella.NIL} <br> CAP: ${fontanella.CAP}
+                                     <br> municipio n°: ${fontanella.MUNICIPIO} <br> coordinate: ${fontanella.Location}`;
+
+                  if (!isNaN(lat) && !isNaN(lon)) {
+                    var marker = new L.Marker([lat, lon]);
+                    map.addLayer(marker);
+                    marker.bindPopup(descrizione);
+                    markers.push(marker); // Aggiungi il marker all'array
+                  }
+                });
+              } else {
+                // Creazione di un popup d'errore utilizzando SweetAlert2
+                Swal.fire({
+                     icon: 'error',
+                     title: 'Errore',
+                     text: 'Fontanella non trovata.',
+                });
+              }
+            })
+            .catch(error => {
+              // Creazione di un popup d'errore utilizzando SweetAlert2
+              Swal.fire({
+                   icon: 'error',
+                   title: 'Errore',
+                   text: 'Si è verificato un errore nella ricerca.',
+              });
+              console.error(error);
+            });
+        } else {
+          // Creazione di un popup d'errore utilizzando SweetAlert2
+          Swal.fire({
+               icon: 'error',
+               title: 'Errore',
+               text: 'Inserisci un ID valido.',
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

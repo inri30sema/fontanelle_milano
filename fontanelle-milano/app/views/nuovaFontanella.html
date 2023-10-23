@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    
+    <title>Aggiungi una nuova fontanella</title>
+    <style>
+      /* Stili per il pulsante */
+      .btn {
+        cursor: pointer;
+        padding: 10px 20px;
+        background-color: #D5E0DE;
+        border-radius: 10px 10px 10px 10px;
+      }
+      
+      body {
+        background-color: #D5E0DE;
+      }
+    </style>
+  </head>
+  <body>
+    <h1> Aggiungi una nuova fontanella </h1>
+    
+    <a href="https://fontanelle-milano.glitch.me/views/menuPrincipale.html">
+      <button type="button" class="btn"> menù principale </button>
+    </a>
+    
+    <form action="https://fontanelle-milano.glitch.me/postFontanella" method="POST" target="_blank">
+      
+      <!-- ID -->
+      <p>
+        <div class="form-group">
+          <label for="objectID">ID:</label>
+          <br>
+          <input type="number" class="form-control" name="objectID" required>
+        </div>
+      </p>
+    
+      <!-- CAP -->
+      <p>
+        <div class="form-group">
+          <label for="CAP">CAP:</label>
+          <br>
+          <input class="form-control" name="CAP" required>
+        </div>
+      </p>
+  
+      <!-- municipio -->
+      <p>
+        <div class="form-group">
+          <label for="MUNICIPIO">n° municipio:</label>
+          <br>
+          <input class="form-control" name="MUNICIPIO" required>
+        </div>
+      </p>
+
+      <!-- ID_NIL -->
+      <p>
+        <div class="form-group">
+          <label for="ID_NIL">ID_NIL:</label>
+          <br>
+          <select class="form-control" name="ID_NIL" id="ID_NIL" required>
+            <!-- Script per inserire tutti gli id quartiere disponibili -->
+            <script>
+              for (let i = 1; i <= 88; i++) {
+                if (i !== 39 && i !== 47 && i !== 73 && i !== 86) {
+                  var option = document.createElement("option");
+                  option.value = i;
+                  option.text = i;
+                  document.getElementById("ID_NIL").appendChild(option);
+                }
+              }
+            </script>
+          </select>
+        </div>
+      </p>
+
+      <!-- nome NIL inserito automaticamente in base all'ID_NIL -->
+      <p>
+        <div class="form-group">
+          <label for="LONG_X_4326">nome NIL:</label>
+          <br>
+          <input class="form-control" name="NIL" id="NIL" required>
+        </div>
+      </p>
+      
+      <!-- longitudine -->
+      <p>
+        <div class="form-group">
+          <label for="LONG_X_4326">Longitudine (es 0.000):</label>
+          <br>
+          <input class="form-control" name="LONG_X_4326" id="LONG_X_4326" required>
+        </div>
+      </p>
+
+      <!-- latitudine -->
+      <p>
+        <div class="form-group">
+          <label for="LAT_Y_4326">Latitudine (es 0.000):</label>
+          <br>
+          <input class="form-control" name="LAT_Y_4326" id="LAT_Y_4326" required>
+        </div>
+      </p>
+
+      <!-- Location inserita automaticamente -->
+      <p>
+        <div class="form-group">
+          <input type="hidden" class="form-control" name="Location" id="Location">
+        </div>
+      </p>
+
+      <!-- bottoni per aggiungere la fontanella -->
+      <p>
+        <button type="submit" class="btn" onclick="getValueInput()">Aggiungi fontanella</button>
+        <br>
+        <br>
+        <button type="reset" class="btn">Annulla</button> 
+      </p>
+
+      <script>
+        // funzione per creare il campo location in automatico
+        function getValueInput() {
+          let inputValue = '(' + document.getElementById("LAT_Y_4326").value + ', ' + document.getElementById("LONG_X_4326").value + ')';
+          document.getElementById("Location").value = inputValue;
+        }
+      </script>
+    </form>
+  </body>
+</html>
